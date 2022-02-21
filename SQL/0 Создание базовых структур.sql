@@ -86,4 +86,17 @@ AS WITH json_table AS (
    FROM geobaze
 WITH DATA;
 
+CREATE OR REPLACE VIEW "Павловский парк"."Районы ∀"
+AS SELECT "∀".osm_id,
+    "∀".osm_type,
+    "∀".tags,
+    "∀".tags ->> 'name'::text AS name,
+    "∀".tags ->> 'int_name'::text AS int_name,
+    "∀".tags ->> 'ref'::text AS ref,
+    "∀".geom
+   FROM "Павловский парк"."OSM ∀" "∀"
+  WHERE "∀".osm_type::text = 'relation'::text AND ("∀".tags ->> 'boundary'::text) = 'protected_area'::text AND ("∀".tags ->> 'protection_title'::text) <> 'Государственный музей-заповедник'::text;
+
+COMMENT ON VIEW "Павловский парк"."Районы ∀" IS 'Традиционно выделяемые парковые районы. Общая граница исключена из выборки.';
+
 COMMENT ON MATERIALIZED VIEW "Павловский парк"."WikiMap ∀" IS 'Все данные по точкам с ВикиСклада';
