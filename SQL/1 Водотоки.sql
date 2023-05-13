@@ -224,7 +224,25 @@ AS SELECT st_union(r.geom) AS geom,
     r.name,
     r."ГВР"
    FROM "Павловский парк"."Река частями" r
-  GROUP BY r.name, r."ГВР";  
+  GROUP BY r.name, r."ГВР";
+
+CREATE OR REPLACE VIEW "Павловский парк"."Лодочное движение по водоёмам"
+AS SELECT v.osm_id,
+    v.osm_type,
+    v.geom,
+    v.tags ->> 'gvr:code'::text AS "ГВР",
+    v.tags ->> 'ref:okn'::text AS "ОКН",
+    v.tags ->> 'have_riverbank'::text AS riv_bank,
+    v.tags ->> 'boat'::text AS boat,
+    v.name
+   FROM "Павловский парк"."Водотоки ∀" v
+  WHERE (v.tags ->> 'boat'::text) IS NOT NULL;
+
+CREATE OR REPLACE VIEW "Павловский парк"."Лодочное движение"
+AS SELECT st_union(r.geom) AS geom,
+    r.boat
+   FROM "Павловский парк"."Лодочное движение по водоёмам" r
+  GROUP BY r.boat;  
 
 /*
 -- ПРОБЛЕМА: БЕССТОКОВЫЕ ТОЧКИ
