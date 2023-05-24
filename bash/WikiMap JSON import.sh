@@ -7,10 +7,10 @@ f="$2 $s";
 wget "$apiadr" -O "$f.json"
 if [ "$json" != "[]" ]; then
   json=$(cat "$f.json" | sed "s/'/''/g");
-  echo "truncate table \"public\".\"WikiMap $2\";" | psql -e -d "$3";
-  echo "insert into \"public\".\"WikiMap $2\" (\"r\") values ('$json');" | psql -d "$3";
+  echo "truncate table \"$2\".\"∀ WikiMap\";" | psql -e -d "$3" -U "$4";
+  echo "insert into \"$2\".\"∀ WikiMap\" (\"r\") values ('$json');" | psql -d "$3" -U "$4";
   r=$?;
-  echo " refresh materialized view \"$2\".\"WikiMap ∀\";" | psql -e -d "$3";
+  echo " refresh materialized view \"$2\".\"WikiMap ∀\";" | psql -e -d "$3" -U "$4";
   if [ $r == 0 ]; then
     echo "postgis ✔";
     xz -z -9 "$f.json";  

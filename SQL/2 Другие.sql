@@ -1,3 +1,12 @@
+-- "Павловский парк"."ДТС 0" source
+
+CREATE OR REPLACE VIEW "Павловский парк"."ДТС 0"
+AS SELECT st_union(a.geom) AS geom,
+    a.tags ->> 'name'::text AS "Название"
+   FROM "Павловский парк"."OSM ∀" a
+  WHERE (a.tags ->> 'highway'::text) IS NOT NULL
+  GROUP BY (a.tags ->> 'name'::text);
+
 -- "Павловский парк"."ДТС" source
 
 CREATE OR REPLACE VIEW "Павловский парк"."ДТС"
@@ -15,17 +24,6 @@ AS SELECT
     st_asgeojson("д".geom) AS "GeoJSON"
    FROM "Павловский парк"."ДТС 0" "д"
   ORDER BY "д"."Название";
-
-
--- "Павловский парк"."ДТС 0" source
-
-CREATE OR REPLACE VIEW "Павловский парк"."ДТС 0"
-AS SELECT st_union(a.geom) AS geom,
-    a.tags ->> 'name'::text AS "Название"
-   FROM "Павловский парк"."OSM ∀" a
-  WHERE (a.tags ->> 'highway'::text) IS NOT NULL
-  GROUP BY (a.tags ->> 'name'::text);
-
 
 -- "Павловский парк"."Дороги" source
 

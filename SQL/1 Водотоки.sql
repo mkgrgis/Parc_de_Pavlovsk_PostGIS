@@ -13,7 +13,9 @@ AS SELECT osm_id,
     tags ->> 'tunnel'::text AS tunnel,
     tags ->> 'width'::text AS width,
     tags ->> 'natural'::text AS "natural",
-    geom
+    tags ->> 'name'::text AS "name",
+    geom,
+    geom_type
    FROM "Павловский парк"."OSM ∀" ∀ 
   WHERE (tags ->> 'waterway'::text) IS NOT NULL AND (tags ->> 'waterway'::text) <> 'dam'::text OR (tags ->> 'water'::text) IS NOT NULL OR (tags ->> 'natural'::text) = 'water'::text OR (tags ->> 'natural'::text) = 'wetland'::text;
 
@@ -59,6 +61,32 @@ AS SELECT st_startpoint("в".geom) AS "исток",
     "в".geom
    FROM "Павловский парк"."Водотоки линейные" "в"
   WHERE geometrytype("в".geom) = 'LINESTRING'::text AND (("в"."natural" <> ALL (ARRAY['water'::text, 'wetland'::text])) OR "в"."natural" IS NULL);
+COMMENT ON VIEW "Павловский парк"."Водотоки ↦" IS 'Точки истока всех линейных водотоков';
+  
+-- "Павловский парк"."Водотоки ⇥" source
+
+CREATE OR REPLACE VIEW "Павловский парк"."Водотоки ⇥"
+AS SELECT st_endpoint("в".geom) AS "⇒",
+    "∀".tags,
+    "в".geom,
+    "в".tags AS "w tags",
+    "в".osm_id,
+    "в".osm_type,
+    "в".dir,
+    "в".bridge,
+    "в".intermittent,
+    "в".layer,
+    "в".water,
+    "в".waterway,
+    "в".tunnel,
+    "в".width,
+    "в"."natural"
+   FROM "Павловский парк"."Водотоки линейные" "в"
+     LEFT JOIN "Павловский парк"."OSM ∀" "∀" ON "∀".geom = st_endpoint("в".geom) AND "∀".osm_type::text = 'node'::text
+  WHERE geometrytype("в".geom) = 'LINESTRING'::text AND (("в"."natural" <> ALL (ARRAY['water'::text, 'wetland'::text])) OR "в"."natural" IS NULL);
+
+COMMENT ON VIEW "Павловский парк"."Водотоки ⇥" IS 'Точки стока всех линейных водотоков';
+  
 
 
 -- "Павловский парк"."Водотоки ⇒×2" source
@@ -114,32 +142,6 @@ AS WITH features AS (
    FROM features;
 
 COMMENT ON VIEW "Павловский парк"."Водотоки ⇔ geoJSON" IS 'Формирование файла для проверки бифуркаций';
-
-
--- "Павловский парк"."Водотоки ⇥" source
-
-CREATE OR REPLACE VIEW "Павловский парк"."Водотоки ⇥"
-AS SELECT st_endpoint("в".geom) AS "⇒",
-    "∀".tags,
-    "в".geom,
-    "в".tags AS "w tags",
-    "в".osm_id,
-    "в".osm_type,
-    "в".dir,
-    "в".bridge,
-    "в".intermittent,
-    "в".layer,
-    "в".water,
-    "в".waterway,
-    "в".tunnel,
-    "в".width,
-    "в"."natural"
-   FROM "Павловский парк"."Водотоки линейные" "в"
-     LEFT JOIN "Павловский парк"."OSM ∀" "∀" ON "∀".geom = st_endpoint("в".geom) AND "∀".osm_type::text = 'node'::text
-  WHERE geometrytype("в".geom) = 'LINESTRING'::text AND (("в"."natural" <> ALL (ARRAY['water'::text, 'wetland'::text])) OR "в"."natural" IS NULL);
-
-COMMENT ON VIEW "Павловский парк"."Водотоки ⇥" IS 'Точки стока всех линейных водотоков';
-
 
 -- "Павловский парк"."Водотоки ∩" source
 
@@ -206,43 +208,6 @@ AS WITH base AS (
         )
  SELECT json_build_object('type', 'FeatureCollection', 'features', json_agg(features.feature)) AS "GeoJSON"
    FROM features;
-   
-CREATE OR REPLACE VIEW "Павловский парк"."Река частями"
-AS SELECT v.osm_id,
-    v.osm_type,
-    v.geom,
-    v.tags ->> 'gvr:code'::text AS "ГВР",
-    v.tags ->> 'ref:okn'::text AS "ОКН",
-    v.tags ->> 'have_riverbank'::text AS riv_bank,
-    (v.tags ->> 'boat'::text)::boolean AS boat,
-    v.name
-   FROM "Павловский парк"."Водотоки ∀" v
-  WHERE v.waterway = 'river'::text AND v.geom_type = 'ST_LineString'::text AND v.name = 'Славянка'::text;
-  
-CREATE OR REPLACE VIEW "Павловский парк"."Река"
-AS SELECT st_union(r.geom) AS geom,
-    r.name,
-    r."ГВР"
-   FROM "Павловский парк"."Река частями" r
-  GROUP BY r.name, r."ГВР";
-
-CREATE OR REPLACE VIEW "Павловский парк"."Лодочное движение по водоёмам"
-AS SELECT v.osm_id,
-    v.osm_type,
-    v.geom,
-    v.tags ->> 'gvr:code'::text AS "ГВР",
-    v.tags ->> 'ref:okn'::text AS "ОКН",
-    v.tags ->> 'have_riverbank'::text AS riv_bank,
-    v.tags ->> 'boat'::text AS boat,
-    v.name
-   FROM "Павловский парк"."Водотоки ∀" v
-  WHERE (v.tags ->> 'boat'::text) IS NOT NULL;
-
-CREATE OR REPLACE VIEW "Павловский парк"."Лодочное движение"
-AS SELECT st_union(r.geom) AS geom,
-    r.boat
-   FROM "Павловский парк"."Лодочное движение по водоёмам" r
-  GROUP BY r.boat;  
 
 /*
 -- ПРОБЛЕМА: БЕССТОКОВЫЕ ТОЧКИ

@@ -1,2 +1,2 @@
 #!/bin/bash
-'./WikiMap JSON import.sh' 'Pavlovsk_park' 'Павловский парк' 'Геоинформационная система';
+$(dirname "$0")'/WikiMap JSON import.sh' 'Pavlovsk_park' 'Павловский парк' 'master' 'master';
