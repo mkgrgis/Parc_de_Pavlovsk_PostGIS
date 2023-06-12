@@ -6,7 +6,7 @@
 <img src="https://www.kudatotam.ru/upload/000/u0/9/1/e53d90bc.jpg" align="center" height="400" alt="Parc de Pavlovsk 2"/>[^2]
 
 ## Подготовка базы данных
-1. Установите любую версию PostgreSQL 9+
+1. Установите любую версию PostgreSQL 9+ и преобразователь данных [osmium](https://github.com/joto/osmium). Например, из пакетов `apt` `postgresql-15` `osmium-tool`.
 2. Создайте пользователя и базу данных для размещения геоданных
 ```bash
 sudo -u postgres bash;
