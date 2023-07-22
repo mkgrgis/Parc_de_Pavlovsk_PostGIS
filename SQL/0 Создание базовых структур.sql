@@ -62,8 +62,6 @@ CREATE TABLE "Павловский парк"."∀ WikiMap" (
 );
 COMMENT ON TABLE "Павловский парк"."∀ WikiMap" IS 'Данные импорта JSON из карты изображений ВикиСклада в единственную строку.';
 
-
-
 CREATE MATERIALIZED VIEW "Павловский парк"."WikiMap ∀"
 TABLESPACE pg_default
 AS WITH json_table AS (
@@ -96,3 +94,47 @@ AS WITH json_table AS (
 WITH DATA;
 
 COMMENT ON MATERIALIZED VIEW "Павловский парк"."WikiMap ∀" IS 'Все данные по точкам с ВикиСклада';
+
+CREATE TABLE "Павловский парк"."∀ PastVu" (
+	r jsonb NOT NULL,
+	t timestamptz(0) NOT NULL DEFAULT now(),
+	"isPainting" bool NOT NULL,
+	CONSTRAINT "PastVu_Павловский_парк_pk" PRIMARY KEY (t)
+);
+
+CREATE MATERIALIZED VIEW "Павловский парк"."PastVu ∀"
+TABLESPACE pg_default
+AS
+WITH json_table AS (
+         SELECT jsonb_array_elements(p.r -> 'result' ->'photos') AS json,
+                p."isPainting"
+           FROM "Павловский парк"."∀ PastVu" p
+        ), geobaze AS (
+        select json_table.json ->> 'cid' "№",
+               json_table.json ->> 'title' "Название",
+        	   json_table.json ->> 'dir' "dir",
+        	   st_setsrid(
+        	   	st_point(((json_table.json -> 'geo') ->> 1)::double precision,
+        	   	        ((json_table.json -> 'geo') ->> 0)::double precision), 4326) "φλ₀",
+        	   --json_table.json ->> 'geo' "",
+        	   'https://pastvu.com/_p/a/' || (json_table.json ->> 'file') "URL",
+        	   json_table.json ->> '__v' "v",
+        	   json_table.json ->> 'year' "от",
+        	   json_table.json ->> 'year2' "до",
+        	   "isPainting",
+        	   json_table.json - 'year2' - 'year' - '__v' - 'file' - 'geo' - 'dir' - 'title' - 'cid'  "json"
+          FROM json_table
+          )
+select * from geobaze
+WITH DATA;
+
+CREATE MATERIALIZED VIEW "Павловский парк"."PastVu парк ∀"
+TABLESPACE pg_default
+as
+SELECT p.*,
+       st_intersection("ог".geom, p."φλ₀") AS geom,
+       st_geometrytype(st_intersection("ог".geom, p."φλ₀")) AS geom_type
+  FROM "Павловский парк"."PastVu ∀" p
+  JOIN "Павловский парк"."Основная граница" "ог"
+    ON st_intersects("ог".geom, p."φλ₀")     
+  WITH DATA;
