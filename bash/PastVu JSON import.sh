@@ -1,9 +1,9 @@
 #!/bin/bash
 # Обновление данных в PostGIS
-[ ! -f 'postgres.url' ] && echo "pg url?" && exit;
+[ ! -f 'postgres.url' ] && echo "✘ postgres.url" && exit;
 pgurl=$(cat 'postgres.url');
 r=$(echo "select '+';" | psql -A -t -q "$pgurl");
-[ "$r" != "+" ] && echo "PostgreSQL URL ??? $pgurl" && exit;
+[ "$r" != "+" ] && echo "$r" && echo "✘ PostgreSQL URL ??? $pgurl" && exit;
 
 lat_min=$(echo "$1" | cut -d ',' -f 1);
 lon_min=$(echo "$1" | cut -d ',' -f 2);
