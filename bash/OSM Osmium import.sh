@@ -1,10 +1,11 @@
 #!/bin/bash
 # Обновление данных в PostGIS по блоку скачиваемых данных
-cd $(dirname "$0");
-bbox="$1";
-pwd;
-[ ! -f 'postgres.url' ] && echo "pg url?" && exit;
+[ ! -f 'postgres.url' ] && echo "✘ postgres.url" && exit;
 pgurl=$(cat 'postgres.url');
+r=$(echo "select '+';" | psql -A -t -q "$pgurl");
+[ "$r" != "+" ] && echo "$r" && echo "✘ PostgreSQL URL ??? $pgurl" && exit;
+
+bbox="$1";
 apiadr="https://overpass-api.de/api/interpreter?data=";
 apiadr="$apiadr[out:xml];(++node($bbox);<;);(._;>;);out+meta;";
 echo "$apiadr";
@@ -19,7 +20,7 @@ echo "\\copy \"$2\".\"∀ osmium\" FROM '$f.pg';" | psql -e "$pgurl";
 r=$?;
 echo " refresh materialized view \"$2\".\"OSM ∀\";" | psql -e "$pgurl";
 if [ $r == 0 ]; then
-  echo "postgis ✔";
+  echo "✔ PostGIS";
   xz -z -9 "$f.osm";
   [ -f "$f.osm" ] && rm -v "$f.osm";
   rm -v "$f.pg";
