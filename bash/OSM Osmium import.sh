@@ -3,6 +3,8 @@
 cd $(dirname "$0");
 bbox="$1";
 pwd;
+[ ! -f 'postgres.url' ] && echo "pg url?" && exit;
+pgurl=$(cat 'postgres.url');
 apiadr="https://overpass-api.de/api/interpreter?data=";
 apiadr="$apiadr[out:xml];(++node($bbox);<;);(._;>;);out+meta;";
 echo "$apiadr";
@@ -12,10 +14,10 @@ f="$2 $s";
 wget "$apiadr" -O "$f.osm";
 osmium export --no-progress --config='osmium.conf' -f pg "$f.osm" -o "$f.pg" && echo "osmium ✔";
 echo -n "PostGIS geom: "$(wc -l "$f.pg")" ";
-echo "truncate table \"$2\".\"∀ osmium\";" | psql -e -d "$3" -U "$4";
-echo "\\copy \"$2\".\"∀ osmium\" FROM '$f.pg';" | psql -e -d "$3" -U "$4";
+echo "truncate table \"$2\".\"∀ osmium\";" | psql -e "$pgurl";
+echo "\\copy \"$2\".\"∀ osmium\" FROM '$f.pg';" | psql -e "$pgurl";
 r=$?;
-echo " refresh materialized view \"$2\".\"OSM ∀\";" | psql -e -d "$3" -U "$4";
+echo " refresh materialized view \"$2\".\"OSM ∀\";" | psql -e "$pgurl";
 if [ $r == 0 ]; then
   echo "postgis ✔";
   xz -z -9 "$f.osm";
