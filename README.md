@@ -1,4 +1,4 @@
-# PostGIS_Parc_de_Pavlovsk
+# Parc de Pavlovsk PostGIS
 Скрипты PostGIS для оценки качества данных [OSM](https://osm.org), [WikiMap](https://commons.wikimedia.org/wiki/Category:Pavlovsk_park), [PastVu](https://pastvu.com/ps?f=r!365) по [Павловскому парку](https://www.openstreetmap.org/relation/1721131).
 
 <img src="https://99px.ru/sstorage/53/2021/10/tmb_334172_300493.jpg" align="center" height="350" alt="Parc de Pavlovsk 1"/>[^1]
