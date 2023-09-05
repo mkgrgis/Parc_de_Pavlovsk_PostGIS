@@ -39,19 +39,23 @@ WITH DATA;
 
 COMMENT ON MATERIALIZED VIEW "Павловский парк"."OSM ∀" IS 'Все данные, относящиеся к Павловскому парку включая данные на его границах.';
 
-CREATE OR REPLACE VIEW "Павловский парк"."Районы ∀"
+CREATE OR REPLACE VIEW "Павловский парк"."Районы"
 AS SELECT "∀".osm_id,
     "∀".osm_type,
-    "∀".tags,
     "∀".tags ->> 'name'::text AS name,
-    "∀".tags ->> 'name:fr'::text AS name_fr,
-    "∀".tags ->> 'int_name'::text AS int_name,
     "∀".tags ->> 'ref'::text AS ref,
-    "∀".geom
+    "∀".tags ->> 'int_name'::text AS int_name,
+    "∀".geom,
+    "∀".tags ->> 'wikidata'::text AS wikidata,
+    "∀".tags ->> 'name:fr'::text AS "name:fr",
+    "∀".tags ->> 'alt_name:fr'::text AS "alt_name:fr",
+    "∀".tags ->> 'name:hy'::text AS "name:hy",
+    "∀".tags ->> 'name:az'::text AS "name:az",
+    "∀".tags ->> 'name:uk'::text AS "name:uk",
+    "∀".tags ->> 'name:zh'::text AS "name:zh",
+    "∀".tags - 'ref'::text - 'place'::text - 'name'::text - 'name:fr'::text - 'name:hy'::text - 'name:az'::text - 'name:uk'::text - 'name:zh'::text - 'int_name'::text - 'boundary'::text - 'wikidata'::text - 'alt_name:fr'::text AS tags
    FROM "Павловский парк"."OSM ∀" "∀"
-  WHERE "∀".osm_type::text = 'relation'::text   
-  AND ("∀".tags ->> 'boundary'::text) = 'protected_area'::text  
-  AND ("∀".tags ->> 'ref'::text) is not null;
+  WHERE "∀".osm_type::text = 'relation'::text AND ("∀".tags ->> 'boundary'::text) = 'protected_area'::text AND ("∀".tags ->> 'ref'::text) IS NOT NULL;
 
 COMMENT ON VIEW "Павловский парк"."Районы ∀" IS 'Традиционно выделяемые парковые районы. Общая граница исключена из выборки.';
 
