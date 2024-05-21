@@ -47,7 +47,9 @@ select st_union(b."Бассейн", r.geom) "Бассейн",
        r.*
   from "Павловский парк"."Бассейны" b
  inner join "Павловский парк"."OSM ∀" r -- Очередной примыкающий водоток
-    on (
+    on (r.osm_id, r.osm_type, b.bas_id ) not in (select osm_id, osm_type, bas_id
+                                         from "Павловский парк"."Бассейны использованы" bi)
+   and (
        ( r.geom_type = 'ST_LineString'
    and r.tags ->> 'waterway' is not null
    and r.tags ->> 'bridge' is null
@@ -66,9 +68,7 @@ select st_union(b."Бассейн", r.geom) "Бассейн",
    and not st_intersects(r.geom, b."ini")       
        )
        )
-   and (r.osm_id, r.osm_type) != (b.osm_id, b.osm_type)
-   and (r.osm_id, r.osm_type, b.bas_id ) not in (select osm_id, osm_type, bas_id
-                                         from "Павловский парк"."Бассейны использованы" bi);
+   and (r.osm_id, r.osm_type) != (b.osm_id, b.osm_type);
 -- Создание объектов завершено
 
 -- Первичное заполнение
