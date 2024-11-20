@@ -114,7 +114,7 @@ WITH json_table AS (
                 p."isPainting"
            FROM "Павловский парк"."∀ PastVu" p
         ), geobaze AS (
-        select json_table.json ->> 'cid' "№",
+        select (json_table.json ->> 'cid')::int "№",
                json_table.json ->> 'title' "Название",
         	   json_table.json ->> 'dir' "dir",
         	   st_setsrid(
